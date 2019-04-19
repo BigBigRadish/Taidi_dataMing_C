@@ -1,0 +1,2 @@
+vehicleplatenumber,device_num,direction_angle,lng,lat,acc_state,right_turn_signals,left_turn_signals,hand_brake,foot_brake,location_time,gps_speed,mileage,lng_x,lat_y,unix_time,labels
+AF00105,AAA9101105,0,115.753523,27.183888,1,0,0,0,0,2018-09-08 21:58:11,0,3710,12885623.23788748,3146464.9696661932,1536415091.0,-1

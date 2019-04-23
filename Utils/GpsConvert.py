@@ -31,7 +31,19 @@ class GpsConvert(object):
         gcj = [ gcj_lon, gcj_lat ]#火星坐标系值#火星坐标系转wgs84
         wgs = self.gcj02towgs84(gcj[0], gcj[1])
         return wgs
+    def transformlon(self,lon, lat):
+        ret = 300.0 + lon + 2.0 * lat + 0.1 * lon * lon + 0.1 * lon * lat + 0.1 * math.sqrt(math.fabs(lon))
+        ret += (20.0 * math.sin(6.0 * lon * PI) + 20.0 * math.sin(2.0 * lon * PI)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(lon * PI) + 40.0 * math.sin(lon / 3.0 * PI)) * 2.0 / 3.0
+        ret += (150.0 * math.sin(lon / 12.0 * PI) + 300.0 * math.sin(lon / 30.0 * PI)) * 2.0 / 3.0
+        return ret
 
+    def transformlat(self,lon, lat):
+        ret = -100.0 + 2.0 * lon + 3.0 * lat + 0.2 * lat * lat + 0.1 * lon * lat + 0.2 * math.sqrt(math.fabs(lon))
+        ret += (20.0 * math.sin(6.0 * lon * PI) + 20.0 * math.sin(2.0 * lon * PI)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(lat * PI) + 40.0 * math.sin(lat / 3.0 * PI)) * 2.0 / 3.0
+        ret += (160.0 * math.sin(lat / 12.0 * PI) + 320 * math.sin(lat * PI / 30.0)) * 2.0 / 3.0
+        return ret
 #火星坐标系转wgs84
     def gcj02towgs84(self,gcj_lon, gcj_lat):
         if (self.out_of_china(gcj_lon, gcj_lat)):
@@ -84,23 +96,7 @@ class GpsConvert(object):
             gcj = [ gcj_lon, gcj_lat ]
             return gcj
 
-
-
-
 #    //判断是否在国内，不在国内则不做偏移
     def out_of_china(self,lon, lat):
         return (lon < 72.004 or lon > 137.8347) or ((lat < 0.8293 or lat > 55.8271) or False)
 
-    def transformlon(self,lon, lat):
-        ret = 300.0 + lon + 2.0 * lat + 0.1 * lon * lon + 0.1 * lon * lat + 0.1 * math.sqrt(math.fabs(lon))
-        ret += (20.0 * math.sin(6.0 * lon * PI) + 20.0 * math.sin(2.0 * lon * PI)) * 2.0 / 3.0
-        ret += (20.0 * math.sin(lon * PI) + 40.0 * math.sin(lon / 3.0 * PI)) * 2.0 / 3.0
-        ret += (150.0 * math.sin(lon / 12.0 * PI) + 300.0 * math.sin(lon / 30.0 * PI)) * 2.0 / 3.0
-        return ret
-
-    def transformlat(self,lon, lat):
-        ret = -100.0 + 2.0 * lon + 3.0 * lat + 0.2 * lat * lat + 0.1 * lon * lat + 0.2 * math.sqrt(math.fabs(lon))
-        ret += (20.0 * math.sin(6.0 * lon * PI) + 20.0 * math.sin(2.0 * lon * PI)) * 2.0 / 3.0
-        ret += (20.0 * math.sin(lat * PI) + 40.0 * math.sin(lat / 3.0 * PI)) * 2.0 / 3.0
-        ret += (160.0 * math.sin(lat / 12.0 * PI) + 320 * math.sin(lat * PI / 30.0)) * 2.0 / 3.0
-        return ret

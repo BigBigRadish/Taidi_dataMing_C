@@ -14,15 +14,17 @@ import time
 import pandas as pd
 import datetime
 import time
-df_min=pd.read_csv('../data/train_100/AA00004.csv')
+import os
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+
 def datatime_2_unixtime( dtime):
     ans_time = time.mktime(datetime.datetime.strptime(dtime, "%Y-%m-%d %H:%M:%S").timetuple())
     return ans_time
-df_min['unix_time']=df_min['location_time'].apply(datatime_2_unixtime)
-df_min.to_csv('../data/train_100/A00004.csv')
-# 计算X矩阵的距离矩阵
-def compute_squared_EDM(X):
-    return squareform(pdist(X, metric='euclidean'))
+# # df_min.to_csv('../data/dd_train_100/A00004.csv')
+# # 计算X矩阵的距离矩阵
+def compute_squared_EDM(X,metric='euclidean'):
+    return squareform(pdist(X, metric=metric))
 # data 的第一列是unix时间戳，剩余列是空间坐标数据
 # eps1 空间邻域
 # eps2 时间邻域
@@ -31,7 +33,7 @@ def ST_DBSCAN(data,eps1,eps2,minPts):
     # 获得数据的行和列(一共有n条数据)
     n, m = data.shape
     # 计算时间距离矩阵
-    timeDisMat=compute_squared_EDM(data[:,0].reshape(n, 1))
+    timeDisMat=compute_squared_EDM(data[:,0].reshape(n, 1),metric='minkowski')
     # 获得空间距离矩阵
     disMat = compute_squared_EDM(data[:,1:])
     # 将矩阵的中小于minPts的数赋予1，大于minPts的数赋予零，然后1代表对每一行求和,然后求核心点坐标的索引
@@ -66,7 +68,7 @@ def ST_DBSCAN(data,eps1,eps2,minPts):
             # 簇集生长完毕，寻找到一个类别
             clusterId = clusterId + 1
     return labels
-def plotFeature(data, labels_):
+def plotFeature(data, labels_,file):
     clusterNum=len(set(labels_))
     fig = plt.figure()
     scatterColors = ['black', 'blue', 'green', 'yellow', 'red', 'purple', 'orange','#BC8F8F','#8B4513','brown']
@@ -74,11 +76,30 @@ def plotFeature(data, labels_):
     for i in range(-1,clusterNum):
         colorSytle = scatterColors[i % len(scatterColors)]
         subCluster = data[np.where(labels_==i)]
-        ax.scatter(subCluster[:,0], subCluster[:,1], c=colorSytle, s=20)
-    plt.show()
-data = df_min.as_matrix(columns=['unix_time','lat', 'lng'])
-start = time.clock()
-labels=ST_DBSCAN(data,3,500,30)
-end = time.clock()
-print('finish all in %s' % str(end - start))
-plotFeature(data[:,1:], labels)
+        ax.scatter(subCluster[:,0], [i]*len(subCluster), c=colorSytle, s=20) 
+#     plt.show()
+    plt.savefig(file)
+    
+#轨迹分段
+def traject_partition():
+    raw_path='../data/la_ln_dd_train_100'
+    partion_path='../Result/result1/tr_train_100'
+    cluster_plot_file='../Result/result1/cluster_plot_file'
+    list1 = os.listdir(raw_path)
+    print(list1)
+    for i in list1:
+        raw_df=pd.read_csv(raw_path+'/'+i)#原始文件
+        raw_df['unix_time']=raw_df['location_time'].apply(datatime_2_unixtime)#转换成unix时间
+        data = raw_df.as_matrix(columns=['unix_time'])#'lat', 'lng'
+        start = time.clock()
+#         db = DBSCAN(eps=7200, metric='minkowski',p=1,n_jobs=8).fit(data)
+        labels = ST_DBSCAN(data,500,7200,30)
+        end = time.clock()
+        print('finish all in %s' % str(end - start))
+        plot_file=cluster_plot_file+'/st_'+i.replace('.csv','.png')
+        plotFeature(data, labels,plot_file)
+        raw_df['labels']=labels
+#         raw_df.to_csv(partion_path+'/'+i,encoding='utf-8',index=False)
+if __name__ == '__main__':
+    traject_partition()
+    

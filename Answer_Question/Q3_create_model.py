@@ -67,6 +67,6 @@ pred = estimator.predict(X_test)
 # k-fold cross-validate
 seed = 42
 np.random.seed(seed)
-kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
+kfold = KFold(n_splits=5, shuffle=True, random_state=seed)
 results = cross_val_score(estimator, X, Y, cv=kfold)
 print(results)
